@@ -1,0 +1,36 @@
+{
+  "config": {
+    "flow_title": "Lecteurs multimédias d'Area",
+    "step": {
+      "user": {
+        "title": "Configuration Area Media Players",
+        "description": "Sélectionnez les lecteurs à exclure pour chaque pièce",
+        "data": {
+          "area_*": "Lecteurs à exclure de {}"
+        }
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Une seule instance est autorisée."
+    }
+  },
+  "state_attributes": {
+    "count": "Nombre de lecteurs actifs",
+    "total": "Nombre total de lecteurs",
+    "count_of": "Nombre de lecteurs actifs sur le total",
+    "players_active": "Lecteurs actifs",
+    "players_inactive": "Lecteurs inactifs",
+    "excluded_players": "Lecteurs exclus"
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Configuration Area Media Players",
+        "description": "Modifiez les lecteurs à exclure pour chaque pièce",
+        "data": {
+          "area_*": "Lecteurs à exclure de {}"
+        }
+      }
+    }
+  }
+}

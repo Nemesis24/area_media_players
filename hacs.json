@@ -1,0 +1,13 @@
+{
+    "name": "Area Media Players",
+    "content_in_root": false,
+    "domains": ["media_player"],
+    "country": "FR",
+    "homeassistant": "2023.10.0",
+    "render_readme": true,
+    "zip_release": false,
+    "filename": "custom_components/area_media_players",
+    "iot_class": "Local Polling",
+    "integration_type": "integration",
+    "issue_tracker": "https://github.com//Nemesis24/area_media_players/issues"  
+}
