@@ -4,7 +4,7 @@
     "step": {
       "user": {
         "title": "Configuration Area Media Players",
-        "description": "Sélectionnez les lecteurs à exclure pour chaque pièce",
+        "description": "Vous pouvez exclure des lecteurs pour chaque pièce en les sélectionnant.\n\nL'intégration ne détecte que les lecteurs qui sont affectés à une pièce.",
         "data": {
           "area_*": "Lecteurs à exclure de {}"
         }
@@ -26,7 +26,7 @@
     "step": {
       "init": {
         "title": "Configuration Area Media Players",
-        "description": "Modifiez les lecteurs à exclure pour chaque pièce",
+        "description": "Vous pouvez exclure des lecteurs pour chaque pièce en les sélectionnant.\n\nL'intégration ne détecte que les lecteurs qui sont affectés à une pièce.",
         "data": {
           "area_*": "Lecteurs à exclure de {}"
         }

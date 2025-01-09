@@ -1,0 +1,36 @@
+{
+  "config": {
+    "flow_title": "Area Media Players",
+    "step": {
+      "user": {
+        "title": "Area Media Players Configuration",
+        "description": "You can exclude players for each room by selecting them.\n\nThe integration only detects players that are assigned to a room.",
+        "data": {
+          "area_*": "Players to exclude from {}"
+        }
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Only a single instance is allowed."
+    }
+  },
+  "state_attributes": {
+    "count": "Number of active players",
+    "total": "Total number of players",
+    "count_of": "Number of active players out of total",
+    "players_active": "Active players",
+    "players_inactive": "Inactive players",
+    "excluded_players": "Excluded players"
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Area Media Players Configuration",
+        "description": "You can exclude players for each room by selecting them.\n\nThe integration only detects players that are assigned to a room.",
+        "data": {
+          "area_*": "Players to exclude from {}"
+        }
+      }
+    }
+  }
+}

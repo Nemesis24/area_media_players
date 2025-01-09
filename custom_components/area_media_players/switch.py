@@ -1,5 +1,4 @@
 import logging
-from homeassistant.components.sensor import SensorEntity
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.const import STATE_ON, STATE_OFF
 from homeassistant.core import callback
@@ -51,6 +50,13 @@ async def async_setup_entry(hass, entry, async_add_entities):
             _LOGGER.debug(f"Area {area.name}: {len(area_players)} media players found: {area_players}")
             switches.append(RoomMediaPlayersSwitch(area.name, list(area_players), list(area_excluded)))
             all_players.update(area_players)
+        else:
+            # Supprimer l'entité de commutateur si la pièce n'a plus de lecteurs multimédias
+            switch_entity_id = f"switch.media_players_{area.name.lower().replace(' ', '_')}"
+            entity = entity_reg.async_get(switch_entity_id)
+            if entity:
+                _LOGGER.debug(f"Removing switch entity for area with no media players: {switch_entity_id}")
+                entity_reg.async_remove(switch_entity_id)
 
     if all_players:
         _LOGGER.debug(f"Total media players found: {len(all_players)}")
@@ -59,14 +65,14 @@ async def async_setup_entry(hass, entry, async_add_entities):
     _LOGGER.debug(f"Creating {len(switches)} switches")
     async_add_entities(switches)
 
-class RoomMediaPlayersSwitch(SensorEntity, SwitchEntity):
+class RoomMediaPlayersSwitch(SwitchEntity):
     def __init__(self, room_name, players, excluded_players):
         self._room = room_name
         self._players = players
         self._excluded_players = excluded_players
         self._attr_name = f"Media Players {room_name}"
         self._attr_unique_id = f"area_media_players_{room_name.lower().replace(' ', '_')}"
-        self._state = STATE_OFF
+        self._attr_is_on = False
         self._count = 0
         self._total = len(players)
         self._players_active = []
@@ -74,12 +80,8 @@ class RoomMediaPlayersSwitch(SensorEntity, SwitchEntity):
         _LOGGER.debug(f"Initializing switch {self._attr_name} with {self._total} media players: {self._players}")
 
     @property
-    def state(self):
-        return self._state
-
-    @property
     def icon(self):
-        return "mdi:monitor-speaker" if self._state == STATE_ON else "mdi:monitor-speaker-off"
+        return "mdi:monitor-speaker" if self.is_on else "mdi:monitor-speaker-off"
 
     @property
     def extra_state_attributes(self):
@@ -92,29 +94,55 @@ class RoomMediaPlayersSwitch(SensorEntity, SwitchEntity):
             "excluded_players": self._excluded_players, 
         }
 
-    @property
-    def is_on(self):
-        return self._state == STATE_ON
-
     async def async_turn_on(self, **kwargs):
-        for player_id in self._players:
-            await self.hass.services.async_call(
-                "media_player", "turn_on", {"entity_id": player_id}
-            )
-        self._state = STATE_ON
-        self.async_write_ha_state()
+        """Turn the switch on."""
+        _LOGGER.debug(f"Turning on switch {self._attr_name}")
+        try:
+            for player_id in self._players:
+                state = self.hass.states.get(player_id)
+                if state:
+                    _LOGGER.debug(f"Current state of {player_id}: {state.state}")
+                    _LOGGER.debug(f"Turning on speaker {player_id}")
+                    await self.hass.services.async_call(
+                        "media_player",
+                        "turn_on",
+                        service_data={"entity_id": player_id},
+                        blocking=True
+                    )
+            self._attr_is_on = True
+            await self.async_update()
+
+        except Exception as e:
+            _LOGGER.error(f"Error turning on {self._attr_name}: {str(e)}")
 
     async def async_turn_off(self, **kwargs):
-        for player_id in self._players:
-            await self.hass.services.async_call(
-                "media_player", "turn_off", {"entity_id": player_id}
-            )
-        self._state = STATE_OFF
-        self.async_write_ha_state()
+        """Turn the switch off."""
+        _LOGGER.debug(f"Turning off switch {self._attr_name}")
+        try:
+            for player_id in self._players:
+                state = self.hass.states.get(player_id)
+                if state:
+                    _LOGGER.debug(f"Current state of {player_id}: {state.state}")
+                    _LOGGER.debug(f"Turning off speaker {player_id}")
+                    await self.hass.services.async_call(
+                        "media_player",
+                        "turn_off",
+                        service_data={"entity_id": player_id},
+                        blocking=True
+                    )
+            self._attr_is_on = False
+            await self.async_update()
+
+        except Exception as e:
+            _LOGGER.error(f"Error turning off {self._attr_name}: {str(e)}")
 
     async def async_added_to_hass(self):
+        """Run when entity about to be added."""
+        await super().async_added_to_hass()
+        
         @callback
         def async_state_changed(*_):
+            """Handle child updates."""
             self.async_schedule_update_ha_state(True)
 
         for player in self._players:
@@ -124,9 +152,10 @@ class RoomMediaPlayersSwitch(SensorEntity, SwitchEntity):
                 )
             )
         
-        self.async_schedule_update_ha_state(True)
+        await self.async_update()
 
     async def async_update(self):
+        """Update the entity."""
         self._count = 0
         self._players_active = []
         self._players_inactive = []
@@ -139,27 +168,12 @@ class RoomMediaPlayersSwitch(SensorEntity, SwitchEntity):
             else:
                 self._players_inactive.append(player_id)
         
-        self._state = STATE_ON if self._count > 0 else STATE_OFF
+        self._attr_is_on = self._count > 0
         _LOGGER.debug(f"Updating {self._attr_name}: {self._count}/{self._total} media players active")
+        self.async_write_ha_state()
 
 class AllMediaPlayersSwitch(RoomMediaPlayersSwitch):
     def __init__(self, players, excluded_players):
         super().__init__("All", players, excluded_players)
         self._attr_name = "All Area Media Players"
         self._attr_unique_id = "area_media_players_all"
-
-    async def async_turn_on(self, **kwargs):
-        for player_id in self._players:
-            await self.hass.services.async_call(
-                "media_player", "turn_on", {"entity_id": player_id}
-            )
-        self._state = STATE_ON
-        self.async_write_ha_state()
-
-    async def async_turn_off(self, **kwargs):
-        for player_id in self._players:
-            await self.hass.services.async_call(
-                "media_player", "turn_off", {"entity_id": player_id}
-            )
-        self._state = STATE_OFF
-        self.async_write_ha_state()
