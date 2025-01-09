@@ -34,9 +34,9 @@ Non supporté.
 
 ## Utilisation
 
-### Capteurs et Switches
+### Switch
 
-L'intégration crée des capteurs et des switches pour chaque zone avec les attributs suivants :
+L'intégration crée un switch pour chaque zone ainsi qu'un switch pour toute la maison avec les attributs suivants :
 
 - `count`: Nombre de lecteurs actifs.
 - `total`: Nombre total de lecteurs.
